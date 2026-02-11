@@ -2,8 +2,8 @@ package utils
 
 import (
 	"bytes"
-	// "encoding/json"
-	// "errors"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )

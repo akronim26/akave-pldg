@@ -1,3 +1,5 @@
 package indexing
 
-// TODO: implement the logic to index the events
+import (
+	"github.com/ethereum/go-ethereum/accounts/abi"
+)
