@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+
 )
 
 type RpcUrl struct {
@@ -17,8 +18,6 @@ func NewRpcUrl(url string) *RpcUrl {
 		Url: url,
 	}
 }
-
-
 
 
 type JSONRPCRequest struct {
