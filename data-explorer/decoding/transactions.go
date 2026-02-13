@@ -1,7 +1,7 @@
 package decoding
 
 import (
-	"bytes"
+	"data-explorer/utils"
 	"fmt"
 	"math/big"
 
@@ -18,42 +18,46 @@ type DecodedTx struct {
 	Value      *big.Int               `json:"value"`
 }
 
-func DecodeTransaction(tx *types.Transaction) (*DecodedTx, error) {
+func DecodeTransaction(tx *types.Transaction, contractABI *abi.ABI) (*DecodedTx, error) {
+	var to common.Address
+	txTo := tx.To()
+	if txTo == nil || *txTo != utils.GetAddress() {
+		return nil, nil
+	}
+	to = *txTo
+
 	txData := tx.Data()
 	if len(txData) < 4 {
 		return nil, fmt.Errorf("no method selector")
 	}
 
-	methodId := txData[:4]
-
-	var method *abi.Method
-	for _, m := range contractABI.Methods {
-		if bytes.Equal(m.ID, methodId) {
-			method = &m
-			break
-		}
+	if tx.ChainId() == nil {
+		return nil, fmt.Errorf("transaction has no chain ID")
 	}
 
-	if method == nil {
+	methodId := txData[:4]
+	method, err := contractABI.MethodById(methodId)
+	if err != nil {
 		return nil, fmt.Errorf("unknown method")
 	}
 
 	args := make(map[string]interface{})
-	err := method.Inputs.UnpackIntoMap(args, txData[4:])
+	err = method.Inputs.UnpackIntoMap(args, txData[4:])
 	if err != nil {
 		return nil, err
 	}
 
 	var from common.Address
 	signer := types.LatestSignerForChainID(tx.ChainId())
-	if f, err := types.Sender(signer, tx); err == nil {
-		from = f
+	from, err = types.Sender(signer, tx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to recover sender: %w", err)
 	}
 
 	return &DecodedTx{
 		MethodName: method.Name,
 		From:       from,
-		To:         *tx.To(),
+		To:         to,
 		Params:     args,
 		Value:      tx.Value(),
 	}, nil
