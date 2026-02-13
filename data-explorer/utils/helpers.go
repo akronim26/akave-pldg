@@ -1,11 +1,14 @@
 package utils
 
 import (
+	"bytes"
+
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func unpackEvent(contractABI abi.ABI, out interface{}, name string, vLog types.Log) error {
+func UnpackEvent(contractABI abi.ABI, out interface{}, name string, vLog types.Log) error {
 	// Unpack indexed and non-indexed event fields
 	event := contractABI.Events[name]
 	if len(vLog.Data) > 0 {
@@ -30,4 +33,6 @@ func unpackEvent(contractABI abi.ABI, out interface{}, name string, vLog types.L
 	return nil
 }
 
-
+func HashToString(h common.Hash) string {
+	return string(bytes.TrimRight(h[:], "\x00"))
+}
